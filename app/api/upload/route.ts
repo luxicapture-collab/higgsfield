@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import {
   decodeCredentials,
   PLATFORM_KEY_COOKIE,
+  readEnvCredentials,
 } from "@/generation/credentials"
 import { createPlatformClient, PlatformError } from "@/generation/platform"
 import { requireUploadContentType } from "@/generation/upload-contract"
@@ -31,7 +32,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const jar = await cookies()
-  const credentials = decodeCredentials(jar.get(PLATFORM_KEY_COOKIE)?.value)
+  const credentials =
+    decodeCredentials(jar.get(PLATFORM_KEY_COOKIE)?.value) ??
+    readEnvCredentials()
   if (!credentials)
     return failure(
       401,

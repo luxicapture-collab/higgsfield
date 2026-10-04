@@ -35,6 +35,33 @@ export function decodeCredentials(
   }
 }
 
+/** Local-development fallback: a server-only key from HF_API_KEY_ID and
+    HF_API_KEY_SECRET, used only when no key was pasted. Never active in
+    production, where the app has no login to stop strangers spending it. */
+export function readEnvCredentials(
+  env: Record<string, string | undefined> = process.env
+): { apiKey: string } | null {
+  if (env.NODE_ENV === "production") return null
+  const id = env.HF_API_KEY_ID?.trim()
+  const secret = env.HF_API_KEY_SECRET?.trim()
+  if (!id || !secret) return null
+  try {
+    return { apiKey: requireApiKey(`${id}:${secret}`) }
+  } catch {
+    return null
+  }
+}
+
+/** Fresh UUID per Generate click; anything else is dropped. */
+export function parseIdempotencyKey(value: unknown): string | undefined {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value
+    )
+    ? value.toLowerCase()
+    : undefined
+}
+
 export function parseCredentialInput(data: unknown): { apiKey: string } {
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     throw new Error("Enter an API key")

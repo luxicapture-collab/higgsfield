@@ -11,6 +11,8 @@ import {
   decodeCredentials,
   encodeCredentials,
   parseCredentialInput,
+  parseIdempotencyKey,
+  readEnvCredentials,
 } from "./credentials"
 import { createPlatformClient } from "./platform"
 import type { StatusResult } from "./platform"
@@ -38,14 +40,21 @@ export async function hasPlatformCredentials() {
   return (await readStoredCredentials()) !== null
 }
 
-export async function submitGeneration(plane: GenerationPlane) {
+export async function submitGeneration(
+  plane: GenerationPlane,
+  idempotencyKey?: unknown
+) {
   const model = getModel(plane.model)
   const parsed: GenerationPlane = {
     ...plane,
     settings: parseSettings(model, plane.settings),
   }
   const { path, body } = toPlatform(parsed)
-  return createPlatformClient(await readCredentials()).submit(path, body)
+  return createPlatformClient(await readCredentials()).submit(
+    path,
+    body,
+    parseIdempotencyKey(idempotencyKey)
+  )
 }
 
 /** Every request in flight, answered in one round trip. Next dispatches server
@@ -78,7 +87,10 @@ export async function cancelGeneration(data: unknown) {
 
 async function readStoredCredentials() {
   const jar = await cookies()
-  return decodeCredentials(jar.get(PLATFORM_KEY_COOKIE)?.value)
+  return (
+    decodeCredentials(jar.get(PLATFORM_KEY_COOKIE)?.value) ??
+    readEnvCredentials()
+  )
 }
 
 async function readCredentials() {

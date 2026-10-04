@@ -74,7 +74,7 @@ export function useRuns() {
       setError(null)
       const model = getModel(plane.model)
       try {
-        const queued = await submitGeneration(plane)
+        const queued = await submitGeneration(plane, crypto.randomUUID())
         const record: RunRecord = {
           id: queued.requestId,
           requestId: queued.requestId,

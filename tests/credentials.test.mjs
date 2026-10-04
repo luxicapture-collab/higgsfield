@@ -30,3 +30,14 @@ test("invalid keys cannot be saved or turned into authorization headers", () => 
     assert.equal(decodeCredentials(raw), null);
   }
 });
+
+test("env key fallback joins id and secret, and is off in production", async () => {
+  const { readEnvCredentials, parseIdempotencyKey } = await import("../generation/credentials.ts");
+  const env = { HF_API_KEY_ID: " id ", HF_API_KEY_SECRET: "secret", NODE_ENV: "development" };
+  assert.deepEqual(readEnvCredentials(env), { apiKey: "id:secret" });
+  assert.equal(readEnvCredentials({ ...env, NODE_ENV: "production" }), null);
+  assert.equal(readEnvCredentials({ HF_API_KEY_ID: "id" }), null);
+  const uuid = "0F8FAD5B-D9CB-469F-A165-70867728950E";
+  assert.equal(parseIdempotencyKey(uuid), uuid.toLowerCase());
+  assert.equal(parseIdempotencyKey("nope"), undefined);
+});

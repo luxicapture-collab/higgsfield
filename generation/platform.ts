@@ -56,7 +56,8 @@ export function createPlatformClient(options: PlatformClientOptions) {
   async function send(
     method: "GET" | "POST",
     path: string,
-    body?: Record<string, unknown>
+    body?: Record<string, unknown>,
+    extraHeaders: Record<string, string> = {}
   ) {
     const url = `${baseUrl}${path}`
     console.info("[platform] request", { method, url, body: body ?? null })
@@ -65,6 +66,7 @@ export function createPlatformClient(options: PlatformClientOptions) {
       headers: {
         Authorization: auth,
         ...(body ? { "Content-Type": "application/json" } : {}),
+        ...extraHeaders,
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     })
@@ -91,11 +93,19 @@ export function createPlatformClient(options: PlatformClientOptions) {
     },
     async submit(
       model: string,
-      input: Record<string, unknown>
+      input: Record<string, unknown>,
+      idempotencyKey?: string
     ): Promise<QueuedGeneration> {
       if (!isModelId(model))
         throw new PlatformError(400, { detail: "Invalid model" })
-      return mapQueued(await send("POST", `/${model}`, input))
+      return mapQueued(
+        await send(
+          "POST",
+          `/${model}`,
+          input,
+          idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}
+        )
+      )
     },
     async status(requestId: string): Promise<GenerationStatus> {
       if (!requestId)
