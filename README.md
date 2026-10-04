@@ -8,6 +8,28 @@ http://localhost:3000, click **Connect API key** and paste the key copied from
 https://open.higgsfield.ai/api-keys. Each user's key is stored in an httpOnly cookie;
 all authenticated calls stay on the server.
 
+### Higgsfield SDK
+
+Generation submits go through the official SDK, `@higgsfield/client/v2`
+(server-only, `withPolling: false`, `maxRetries: 0` so a paid POST is never
+re-sent). The SDK has no status, cancel or upload calls, so those use the REST
+endpoints with the same `Authorization: Key KEY_ID:KEY_SECRET` header. A pasted
+key without a colon falls back to plain REST for submits.
+
+**Any model, from the terminal:** put `HF_CREDENTIALS=KEY_ID:KEY_SECRET` in
+`.env.local`, then
+
+```sh
+pnpm hf <model-path> '<json input>'            # submits and waits for the result
+pnpm hf bytedance/seedance-2.0/text-to-video '{"prompt":"A cinematic tracking shot","duration":5}' --no-wait
+```
+
+Take the model path and input schema from the model's API page on
+https://open.higgsfield.ai/explore.
+
+**In the app:** paste the key in **Connect API key**, or in local dev only set
+`HF_CREDENTIALS` (or `HF_API_KEY_ID` + `HF_API_KEY_SECRET`) in `.env.local`.
+
 The template's original documentation follows.
 
 ---

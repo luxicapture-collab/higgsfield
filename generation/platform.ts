@@ -42,6 +42,14 @@ export type PlatformClientOptions = {
   apiKey: string
   baseUrl: string
   fetch?: typeof fetch
+  /** Server-only SDK submit (see `sdk.ts`); REST is used when absent. */
+  submitViaSdk?: (request: {
+    apiKey: string
+    baseUrl: string
+    model: string
+    input: Record<string, unknown>
+    idempotencyKey?: string
+  }) => Promise<unknown>
 }
 
 export function isModelId(model: string): boolean {
@@ -98,6 +106,17 @@ export function createPlatformClient(options: PlatformClientOptions) {
     ): Promise<QueuedGeneration> {
       if (!isModelId(model))
         throw new PlatformError(400, { detail: "Invalid model" })
+      if (options.submitViaSdk) {
+        return mapQueued(
+          await options.submitViaSdk({
+            apiKey: options.apiKey,
+            baseUrl,
+            model,
+            input,
+            ...(idempotencyKey ? { idempotencyKey } : {}),
+          })
+        )
+      }
       return mapQueued(
         await send(
           "POST",

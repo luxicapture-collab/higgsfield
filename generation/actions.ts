@@ -16,6 +16,7 @@ import {
 } from "./credentials"
 import { createPlatformClient } from "./platform"
 import type { StatusResult } from "./platform"
+import { isSdkCredential, sdkSubmit } from "./sdk"
 import { toPlatform } from "./to-platform"
 
 export async function savePlatformCredentials(data: unknown) {
@@ -50,11 +51,11 @@ export async function submitGeneration(
     settings: parseSettings(model, plane.settings),
   }
   const { path, body } = toPlatform(parsed)
-  return createPlatformClient(await readCredentials()).submit(
-    path,
-    body,
-    parseIdempotencyKey(idempotencyKey)
-  )
+  const credentials = await readCredentials()
+  return createPlatformClient({
+    ...credentials,
+    ...(isSdkCredential(credentials.apiKey) ? { submitViaSdk: sdkSubmit } : {}),
+  }).submit(path, body, parseIdempotencyKey(idempotencyKey))
 }
 
 /** Every request in flight, answered in one round trip. Next dispatches server

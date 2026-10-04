@@ -13,10 +13,12 @@
     "format:check": "prettier --check \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
-    "models": "node scripts/sync-models.mjs"
+    "models": "node scripts/sync-models.mjs",
+    "hf": "node scripts/hf.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@higgsfield/client": "0.2.6",
     "@tanstack/react-virtual": "^3.14.13",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
@@ -24,6 +26,7 @@
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "shadcn": "^4.21.0",
     "tw-animate-css": "^1.4.0",
     "zustand": "^5.0.15"

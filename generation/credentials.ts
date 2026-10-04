@@ -35,8 +35,8 @@ export function decodeCredentials(
   }
 }
 
-/** Local-development fallback: a server-only key from HF_API_KEY_ID and
-    HF_API_KEY_SECRET, used only when no key was pasted. Never active in
+/** Local-development fallback: a server-only key from HF_CREDENTIALS (or
+    HF_API_KEY_ID + HF_API_KEY_SECRET), used only when no key was pasted. Never active in
     production, where the app has no login to stop strangers spending it. */
 export function readEnvCredentials(
   env: Record<string, string | undefined> = process.env
@@ -44,9 +44,11 @@ export function readEnvCredentials(
   if (env.NODE_ENV === "production") return null
   const id = env.HF_API_KEY_ID?.trim()
   const secret = env.HF_API_KEY_SECRET?.trim()
-  if (!id || !secret) return null
+  const joined =
+    env.HF_CREDENTIALS?.trim() || (id && secret ? `${id}:${secret}` : "")
+  if (!joined) return null
   try {
-    return { apiKey: requireApiKey(`${id}:${secret}`) }
+    return { apiKey: requireApiKey(joined) }
   } catch {
     return null
   }
